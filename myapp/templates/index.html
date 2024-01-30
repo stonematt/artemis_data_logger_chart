@@ -2,26 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Artemis Data Logger</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script
       src="https://cdn.socket.io/4.7.4/socket.io.min.js"
       integrity="sha384-Gr6Lu2Ajx28mzwyVR8CFkULdCU7kMlZ9UthllibdOSo6qAiN+yXNHqtgdTvFXMT4"
       crossorigin="anonymous"
     ></script>
-    <script src="/static/js/app.js"></script>
+
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", function () {
+        var socket = io.connect(
+          location.protocol + "//" + document.domain + ":" + location.port
+        );
+
+        socket.on("header_data", function (header) {
+          document.getElementById("header").innerHTML =
+            "Header: " + header.join(", ");
+        });
+      });
+    </script>
   </head>
   <body>
-    <h1>Artemis Data Logger Visualization</h1>
-
-    <label for="columnSelect">Select Data Column:</label>
-    <select id="columnSelect" multiple>
-      <!-- Options will be dynamically populated from app.js -->
-    </select>
-
-    <button id="submitColumns">Update Columns</button>
-
-    <canvas id="dataChart"></canvas>
+    <h1>Artemis Data Logger</h1>
+    <div id="header">Waiting for header...</div>
   </body>
 </html>

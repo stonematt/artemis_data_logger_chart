@@ -15,7 +15,7 @@ class ArtemisReader(serial.threaded.Protocol):
         full_header (list): Stores the complete header line.
     """
 
-    def __init__(self, socketio, selected_columns):
+    def __init__(self, socketio, selected_columns, serial_port, baud_rate):
         """
         Initializes ArtemisReader with a SocketIO instance and selected columns.
 
@@ -25,6 +25,8 @@ class ArtemisReader(serial.threaded.Protocol):
         logging.info("Initializing ArtemisReader...")
         self.socketio = socketio
         self.selected_columns = selected_columns
+        self.serial_port = serial_port
+        self.baud_rate = baud_rate
         self.indices = None
         self.header_found = False
         self.buffer = ""
@@ -36,6 +38,7 @@ class ArtemisReader(serial.threaded.Protocol):
 
         :param data: The incoming data bytes.
         """
+        logging.debug("Data received in ArtemisReader")
         try:
             self.buffer += data.decode()  # Append new data to buffer
             while "\n" in self.buffer:
@@ -51,6 +54,8 @@ class ArtemisReader(serial.threaded.Protocol):
 
         :param line_str: A single line of data.
         """
+        logging.debug(f"start line: {line_str}")
+
         if not self.header_found:
             logging.info(f"Read line: {line_str}")
             if "rtcDate" in line_str:
@@ -62,12 +67,15 @@ class ArtemisReader(serial.threaded.Protocol):
             else:
                 self._parse_and_emit(line_str)
 
+        logging.debug(f"Complete line: {line_str}")
+
     def _process_header(self, header_line):
         """
         Processes the header line and emits it to the client.
 
         :param header_line: The header line of the data.
         """
+        logging.debug("Processing header line")
         self.full_header = header_line.split(",")  # Update full header
         self.indices = {name: i for i, name in enumerate(self.full_header)}
         logging.info(f"Header updated: {self.full_header}")
@@ -79,6 +87,7 @@ class ArtemisReader(serial.threaded.Protocol):
 
         :param line_str: A single line of data.
         """
+        logging.debug("Parsing and emitting data")
         data = line_str.split(",")
         if len(data) != len(self.full_header):
             logging.warning(f"Data line does not match header format: {line_str}")
